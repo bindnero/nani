@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="public/logo.jpg" alt="Nani Logo" width="80" height="80" style="border-radius:50%;" />
+  <img src="public/favicon.png" alt="Nani Logo" width="80" height="80" />
   <h1>Nani</h1>
   <p><strong>Open-source desktop UI for Claude Code CLI</strong></p>
   <p>
-    <a href="https://github.com/bindnero/nani/blob/master/LICENSE-MIT.txt"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    <a href="https://github.com/bindnero/nani/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
     <a href="https://github.com/bindnero/nani/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0-brightgreen.svg" /></a>
     <a href="https://github.com/bindnero/nani/issues"><img alt="Issues" src="https://img.shields.io/github/issues/bindnero/nani" /></a>
     <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey" />
@@ -124,20 +124,22 @@ Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## 📋 Roadmap
 
-- [ ] Tauri native file picker integration
+- [x] Native OS folder picker (Windows Explorer dialog, macOS, Linux)
+- [x] In-app folder selector modal with recent projects & quick shortcuts
+- [x] Circular favicon and app icon (anti-aliased alpha mask)
+- [x] Circular logo in sidebar with glow ring animation
+- [x] Full open-source project setup (README, CONTRIBUTING, LICENSE, GitHub templates)
 - [ ] Session history persistence
 - [ ] Multi-session tabs
 - [ ] macOS / Linux tested binary releases
 - [ ] MCP (Model Context Protocol) server panel
 - [ ] In-app provider / API key configuration
 
-See the full [Implementation Roadmap](04-IMPLEMENTATION-ROADMAP.md) for details.
-
 ---
 
 ## 📄 License
 
-[MIT](LICENSE-MIT.txt) — © 2026 Nani contributors.
+[MIT](LICENSE) — © 2026 Nani contributors.
 
 ---
 
