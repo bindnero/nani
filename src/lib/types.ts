@@ -100,6 +100,21 @@ export interface StartSessionRequest {
     | 'manual'
     | 'auto'
     | null;
+  /** Custom CLI executable path (e.g. custom Claude location, Gemini CLI, Aider, etc.) */
+  cliPath?: string | null;
+  /** Custom extra arguments for the CLI */
+  cliArgs?: string[];
+}
+
+/** Configurable CLI engine entry allowing users to add and run any CLI. */
+export interface CliEngine {
+  id: string;
+  name: string;
+  command: string;
+  args?: string[];
+  isDefault?: boolean;
+  version?: string | null;
+  status: 'verified' | 'unverified' | 'failed';
 }
 
 export interface StartSessionResult {

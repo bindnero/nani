@@ -20,8 +20,11 @@ import type {
  * The complete typed surface the React app is allowed to use to reach native
  * capabilities. Two implementations exist:
  *
- *  - `TauriBridge`  -> real `invoke()` calls into the Rust service layer.
- *  - `MockBridge`   -> an in-memory fake CLI for browser dev and unit tests.
+ *  - `TauriBridge`  -> real `invoke()` calls into the Rust service layer. This
+ *    is the only implementation selected at runtime.
+ *  - `MockBridge`   -> an in-memory fake CLI used exclusively by unit tests; it
+ *    is never wired up in the shipped app, so the UI can never display
+ *    fabricated or sample data.
  *
  * Keeping this interface narrow makes it impossible for presentational code to
  * reach the OS directly, and lets tests drive every failure path.
@@ -69,13 +72,16 @@ export interface NaniBridge {
 
   /** Open an https URL in the user's default browser. */
   openExternal(url: string): Promise<void>;
+
+  /** Test and verify any custom CLI executable. */
+  verifyCli?(command: string, args?: string[]): Promise<{ ok: boolean; version?: string | null }>;
 }
 
 export class BridgeUnavailableError extends Error {
   constructor(scope: string) {
     super(
       `The native service for "${scope}" is not available in this build. ` +
-        'Run inside the Nani desktop app (Tauri) or use the mock bridge.',
+        'Nani must run inside its desktop application (Tauri).',
     );
     this.name = 'BridgeUnavailableError';
   }

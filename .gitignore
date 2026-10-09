@@ -40,3 +40,11 @@ coverage/
 .env
 .env.local
 .env.*.local
+
+# Internal specifications and agent files (do not upload to GitHub)
+0*-*.md
+*-PRD*.md
+PRD.md
+AGENTS.md
+nani cli gogo.jpeg
+

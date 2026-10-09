@@ -9,7 +9,8 @@ import { PreferencesPanel } from './features/settings/PreferencesPanel';
 import { useAppStore, applyTheme } from './state/appStore';
 import { isTauri, setBridge } from './lib/bridge';
 import { TauriBridge } from './lib/tauriBridge';
-import { MockBridge } from './lib/mockBridge';
+import { LocalNativeBridge } from './lib/localNativeBridge';
+import { SettingsIcon } from './components/ui/icons';
 
 function RoutedContent() {
   const { route } = useRoute();
@@ -19,8 +20,21 @@ function RoutedContent() {
     case 'settings':
       return (
         <div className="h-full overflow-auto">
-          <ProviderSettings />
-          <PreferencesPanel />
+          <div className="mx-auto max-w-4xl px-6 py-6">
+            {/* Page header */}
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-elevated">
+                <SettingsIcon className="h-5 w-5 text-fg-muted" />
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-fg">Settings</h1>
+                <p className="text-xs text-fg-muted">Configure Claude Code and Nani preferences.</p>
+              </div>
+            </div>
+            <ProviderSettings />
+            <div className="mt-5" />
+            <PreferencesPanel />
+          </div>
         </div>
       );
     case 'workspace':
@@ -34,9 +48,12 @@ export default function App() {
   const theme = useAppStore((s) => s.theme);
 
   useEffect(() => {
-    const bridge = isTauri() ? new TauriBridge() : new MockBridge();
-    setBridge(bridge);
-    void init(bridge);
+    async function start() {
+      const bridge = isTauri() ? new TauriBridge() : new LocalNativeBridge();
+      setBridge(bridge);
+      await init(bridge);
+    }
+    void start();
   }, [init]);
 
   useEffect(() => {

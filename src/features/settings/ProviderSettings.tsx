@@ -1,31 +1,30 @@
 import { useState } from 'react';
 import { useAppStore } from '../../state/appStore';
-import { Badge, Button, Panel, Toggle, cx } from '../../components/ui/primitives';
-import { ExternalLinkIcon, ShieldIcon } from '../../components/ui/icons';
+import { Badge, Button, Panel, Toggle, InfoBanner, cx } from '../../components/ui/primitives';
+import { ExternalLinkIcon, ShieldIcon, CheckIcon, AlertIcon } from '../../components/ui/icons';
 import type { ProviderApplyResult, ProviderConfigPreview, ProviderScope } from '../../lib/types';
 
 const SCOPES: Array<{ id: ProviderScope; label: string; hint: string }> = [
-  { id: 'user', label: 'User', hint: 'Applies to all projects (~/.claude/settings.json)' },
-  { id: 'project', label: 'Project', hint: 'Shared with the repo (.claude/settings.json)' },
-  { id: 'local', label: 'Local', hint: 'Project-local, git-ignored (.claude/settings.local.json)' },
+  { id: 'user',    label: 'User',    hint: '~/.claude/settings.json · applies to all projects' },
+  { id: 'project', label: 'Project', hint: '.claude/settings.json · shared with repo' },
+  { id: 'local',   label: 'Local',   hint: '.claude/settings.local.json · git-ignored' },
 ];
 
 /**
  * Provider configuration (Phase 4). Every write is previewed, backed up, and
- * requires explicit consent. Cancel leaves the file untouched. Secrets are never
- * written to a settings file from here.
+ * requires explicit consent. Cancel leaves the file untouched.
  */
 export function ProviderSettings() {
-  const bridge = useAppStore((s) => s.bridge);
+  const bridge      = useAppStore((s) => s.bridge);
   const projectPath = useAppStore((s) => s.projectPath);
   const runAuthCheck = useAppStore((s) => s.runAuthCheck);
 
-  const [scope, setScope] = useState<ProviderScope>('user');
+  const [scope,   setScope]   = useState<ProviderScope>('user');
   const [preview, setPreview] = useState<ProviderConfigPreview | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ack, setAck] = useState(false);
-  const [result, setResult] = useState<ProviderApplyResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [ack,     setAck]     = useState(false);
+  const [result,  setResult]  = useState<ProviderApplyResult | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
 
   const reset = () => {
     setPreview(null);
@@ -90,22 +89,23 @@ export function ProviderSettings() {
   };
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
-      <Panel title="Provider configuration">
-        <p className="mb-3 text-xs text-fg-muted">
-          Nani only edits documented Claude Code settings after showing you an exact diff,
-          writing a backup, and getting your confirmation. Nothing is written silently.
-        </p>
-
-        <fieldset className="mb-4">
-          <legend className="mb-2 text-xs font-medium text-fg-muted">Configuration scope</legend>
-          <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-5">
+      <Panel
+        title="Provider configuration"
+        subtitle="Writes are previewed, backed up, and require your confirmation."
+      >
+        {/* Scope selector */}
+        <fieldset className="mb-5">
+          <legend className="mb-3 text-xs font-semibold text-fg-muted">Configuration scope</legend>
+          <div className="grid grid-cols-3 gap-2">
             {SCOPES.map((s) => (
               <label
                 key={s.id}
                 className={cx(
-                  'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm',
-                  scope === s.id ? 'border-accent bg-elevated' : 'border-border',
+                  'flex cursor-pointer flex-col gap-0.5 rounded-xl border p-3 text-xs transition-all duration-150',
+                  scope === s.id
+                    ? 'border-[var(--color-border-focus)] bg-accent/8 shadow-[var(--shadow-glow)]'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]/50 hover:bg-elevated',
                 )}
               >
                 <input
@@ -113,70 +113,78 @@ export function ProviderSettings() {
                   name="provider-scope"
                   value={s.id}
                   checked={scope === s.id}
-                  onChange={() => {
-                    setScope(s.id);
-                    reset();
-                  }}
-                  className="mt-0.5"
+                  onChange={() => { setScope(s.id); reset(); }}
+                  className="sr-only"
                 />
-                <span>
-                  <span className="font-medium text-fg">{s.label}</span>
-                  <span className="block text-xs text-fg-muted">{s.hint}</span>
+                <span className={cx('font-semibold capitalize', scope === s.id ? 'text-accent' : 'text-fg')}>
+                  {s.label}
                 </span>
+                <span className="text-[10px] leading-relaxed text-fg-muted">{s.hint}</span>
               </label>
             ))}
           </div>
         </fieldset>
 
+        {/* Actions */}
         <div className="flex flex-wrap gap-2">
-          <Button variant="primary" onClick={() => void doPreview()} loading={loading}>
+          <Button variant="primary" size="sm" onClick={() => void doPreview()} loading={loading}>
             Preview change
           </Button>
-          <Button variant="secondary" onClick={() => void runAuthCheck()}>
+          <Button variant="secondary" size="sm" onClick={() => void runAuthCheck()}>
             Test readiness
           </Button>
           <Button
-            variant="secondary"
+            variant="ghost"
+            size="sm"
             onClick={() => void bridge?.openExternal('https://docs.claude.com/en/docs/claude-code/settings')}
           >
             <ExternalLinkIcon className="h-3.5 w-3.5" />
-            Settings reference
+            Docs
           </Button>
         </div>
 
+        {/* Error */}
         {error && (
-          <p role="alert" className="mt-3 text-xs text-danger">
+          <InfoBanner icon={<AlertIcon className="h-4 w-4" />} tone="danger" >
             {error}
-          </p>
+          </InfoBanner>
         )}
 
+        {/* Success */}
         {result && (
-          <div className="mt-3 rounded-md border border-success/40 bg-success/10 p-3 text-xs">
-            <p className="font-medium text-success">{result.message}</p>
-            {result.backupPath && (
-              <p className="mt-1 text-fg-muted">Backup written to: {result.backupPath}</p>
-            )}
+          <div className="mt-3 flex items-start gap-2 rounded-xl border border-success/30 bg-success/8 px-4 py-3 text-xs text-success animate-fade-in">
+            <CheckIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>
+              <p className="font-semibold">{result.message}</p>
+              {result.backupPath && (
+                <p className="mt-0.5 text-success/70">Backup: {result.backupPath}</p>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Preview */}
         {preview && (
-          <div className="mt-4 flex flex-col gap-3">
-            <div className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-1 text-xs">
+          <div className="mt-5 flex flex-col gap-4 animate-fade-in">
+            <div className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1.5 rounded-xl bg-bg px-4 py-3 text-xs">
               <span className="text-fg-muted">Target file</span>
-              <code className="break-all">{preview.targetPath}</code>
+              <code className="break-all font-mono text-fg">{preview.targetPath}</code>
               <span className="text-fg-muted">Backup</span>
-              <code className="break-all">{preview.backupPath ?? 'none (file does not exist yet)'}</code>
+              <code className="break-all font-mono text-fg">
+                {preview.backupPath ?? 'none (new file)'}
+              </code>
             </div>
 
             {preview.warnings.length > 0 && (
-              <ul className="list-disc space-y-1 rounded-md border border-warn/40 bg-warn/10 p-3 pl-6 text-xs text-warn">
-                {preview.warnings.map((w, i) => (
-                  <li key={i}>{w}</li>
-                ))}
-              </ul>
+              <InfoBanner icon={<AlertIcon className="h-4 w-4" />} tone="warn">
+                <ul className="list-disc pl-3 space-y-0.5">
+                  {preview.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                </ul>
+              </InfoBanner>
             )}
 
-            <div className="rounded-md border border-border bg-bg p-2 font-mono text-xs">
+            {/* Diff */}
+            <div className="rounded-xl border border-[var(--color-border)] bg-bg p-4 font-mono text-xs overflow-auto max-h-64">
               {preview.diff.length === 0 ? (
                 <p className="text-fg-muted">No changes.</p>
               ) : (
@@ -184,9 +192,9 @@ export function ProviderSettings() {
                   <div
                     key={i}
                     className={cx(
-                      'whitespace-pre-wrap break-words',
-                      line.kind === 'added' && 'text-success',
-                      line.kind === 'removed' && 'text-danger',
+                      'whitespace-pre-wrap break-words leading-relaxed',
+                      line.kind === 'added'   && 'text-success bg-success/5',
+                      line.kind === 'removed' && 'text-danger bg-danger/5',
                       line.kind === 'context' && 'text-fg-muted',
                     )}
                   >
@@ -201,18 +209,25 @@ export function ProviderSettings() {
               checked={ack}
               onChange={setAck}
               label="I have reviewed this diff and consent to writing this file"
+              description="This cannot be undone automatically — a backup is created."
             />
 
             <div className="flex gap-2">
-              <Button variant="primary" onClick={() => void doApply()} disabled={!ack} loading={loading}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => void doApply()}
+                disabled={!ack}
+                loading={loading}
+              >
                 Apply change
               </Button>
-              <Button variant="secondary" onClick={reset}>
+              <Button variant="secondary" size="sm" onClick={reset}>
                 Cancel
               </Button>
               {preview.backupPath && (
-                <Button variant="ghost" onClick={() => void doRollback()}>
-                  Restore previous contents
+                <Button variant="ghost" size="sm" onClick={() => void doRollback()}>
+                  Restore backup
                 </Button>
               )}
             </div>
@@ -220,22 +235,21 @@ export function ProviderSettings() {
         )}
       </Panel>
 
+      {/* Security note */}
       <Panel title="Security">
-        <div className="flex items-start gap-2 text-xs text-fg-muted">
-          <ShieldIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-          <p>
-            Credentials are never written to settings files by Nani and never logged. Secret
-            values are masked in the interface and in diagnostic exports.
-          </p>
-        </div>
+        <InfoBanner icon={<ShieldIcon className="h-4 w-4 text-accent" />} tone="info">
+          Credentials are never written to settings files by Nani and never logged. Secret
+          values are masked in the interface and in diagnostic exports.
+        </InfoBanner>
       </Panel>
 
+      {/* Omni placeholder */}
       <Panel title="Omni-Company integration">
-        <div className="flex items-center gap-2">
-          <Badge tone="neutral">Integration pending details</Badge>
+        <div className="flex items-center gap-3">
+          <Badge tone="neutral">Pending</Badge>
           <p className="text-xs text-fg-muted">
-            No API, endpoint, or behavior is assumed. This will be assessed only after the
-            official link or repository is provided.
+            No API, endpoint, or behavior is assumed. Will be assessed after the official
+            link or repository is provided.
           </p>
         </div>
       </Panel>

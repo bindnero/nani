@@ -8,6 +8,7 @@ import {
 } from '../lib/claudeStream';
 import type {
   AuthStatus,
+  CliEngine,
   DetectionResult,
   ProjectValidation,
   ProviderConfigPreview,
@@ -69,6 +70,10 @@ export interface AppState {
   /* skills */
   skills: SkillSummary[];
 
+  /* cli engines */
+  cliEngines: CliEngine[];
+  activeCliId: string;
+
   /* ui */
   theme: 'dark' | 'light' | 'system';
   autoScroll: boolean;
@@ -87,6 +92,10 @@ export interface AppState {
   setAutoScroll: (value: boolean) => void;
   loadSkills: () => Promise<void>;
   removeSkill: (path: string) => Promise<void>;
+  setActiveCliId: (id: string) => void;
+  addCliEngine: (engine: { name: string; command: string; args?: string[] }) => Promise<CliEngine>;
+  removeCliEngine: (id: string) => void;
+  verifyCliEngine: (id: string) => Promise<boolean>;
   setTheme: (theme: 'dark' | 'light' | 'system') => void;
 }
 
@@ -122,12 +131,28 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   providerPreview: null,
   skills: [],
+  cliEngines: [
+    {
+      id: 'claude',
+      name: 'Claude Code CLI',
+      command: 'claude',
+      args: [],
+      isDefault: true,
+      version: null,
+      status: 'verified',
+    },
+  ],
+  activeCliId: 'claude',
   theme: 'dark',
   autoScroll: true,
 
   async init(bridge) {
     set({ bridge, ready: true });
     await bridge.onSessionEvent((event) => applyEvent(set, get, event));
+    // Auto-detect Claude Code CLI immediately on startup
+    void get().runDetection();
+    void get().runAuthCheck();
+    void get().loadSkills();
   },
 
   async runDetection() {
@@ -232,11 +257,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
+    const { activeCliId, cliEngines, detection } = get();
+    const activeEngine = cliEngines.find((e) => e.id === activeCliId);
+    const cliPath = activeEngine && activeEngine.id !== 'claude' ? activeEngine.command : (detection?.path || null);
+    const cliArgs = activeEngine?.args;
+
     try {
       const result: StartSessionResult = await bridge.startSession({
         projectPath,
         prompt: draftPrompt,
         outputFormat: 'stream-json',
+        cliPath,
+        cliArgs,
       });
       set({ sessionId: result.sessionId });
     } catch (error) {
@@ -277,6 +309,71 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!bridge) return;
     await bridge.removeSkill(path);
     await get().loadSkills();
+  },
+
+  setActiveCliId(id) {
+    set({ activeCliId: id });
+  },
+
+  async addCliEngine({ name, command, args }) {
+    const { bridge } = get();
+    let version: string | null = null;
+    let status: 'verified' | 'unverified' = 'unverified';
+    if (bridge?.verifyCli) {
+      try {
+        const check = await bridge.verifyCli(command, args);
+        if (check.ok) {
+          status = 'verified';
+          version = check.version ?? null;
+        }
+      } catch {
+        // ignore verify errors
+      }
+    }
+    const engine: CliEngine = {
+      id: `cli-${Date.now()}`,
+      name,
+      command,
+      args: args ?? [],
+      isDefault: false,
+      version,
+      status,
+    };
+    set((state) => ({
+      cliEngines: [...state.cliEngines, engine],
+      activeCliId: engine.id,
+    }));
+    return engine;
+  },
+
+  removeCliEngine(id) {
+    set((state) => {
+      const remaining = state.cliEngines.filter((c) => c.id !== id);
+      const nextActive = state.activeCliId === id ? (remaining[0]?.id ?? 'claude') : state.activeCliId;
+      return { cliEngines: remaining, activeCliId: nextActive };
+    });
+  },
+
+  async verifyCliEngine(id) {
+    const { bridge, cliEngines } = get();
+    const target = cliEngines.find((c) => c.id === id);
+    if (!target || !bridge?.verifyCli) return false;
+    try {
+      const check = await bridge.verifyCli(target.command, target.args);
+      set((state) => ({
+        cliEngines: state.cliEngines.map((c) =>
+          c.id === id
+            ? { ...c, status: check.ok ? 'verified' : 'failed', version: check.version ?? c.version }
+            : c,
+        ),
+      }));
+      return check.ok;
+    } catch {
+      set((state) => ({
+        cliEngines: state.cliEngines.map((c) => (c.id === id ? { ...c, status: 'failed' } : c)),
+      }));
+      return false;
+    }
   },
 
   setTheme(theme) {
