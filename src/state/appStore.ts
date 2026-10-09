@@ -77,6 +77,7 @@ export interface AppState {
   /* ui */
   theme: 'dark' | 'light' | 'system';
   autoScroll: boolean;
+  folderModalOpen: boolean;
 
   /* actions */
   init: (bridge: NaniBridge) => Promise<void>;
@@ -84,6 +85,8 @@ export interface AppState {
   runAuthCheck: () => Promise<void>;
   setProjectPath: (path: string | null) => void;
   pickProject: () => Promise<void>;
+  openFolderModal: () => void;
+  closeFolderModal: () => void;
   validateProject: (path?: string) => Promise<void>;
   setDraftPrompt: (text: string) => void;
   startSession: () => Promise<void>;
@@ -145,6 +148,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeCliId: 'claude',
   theme: 'dark',
   autoScroll: true,
+  folderModalOpen: false,
 
   async init(bridge) {
     set({ bridge, ready: true });
@@ -197,17 +201,45 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  openFolderModal() {
+    set({ folderModalOpen: true });
+  },
+
+  closeFolderModal() {
+    set({ folderModalOpen: false });
+  },
+
   setProjectPath(path) {
+    if (path) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('nani_recent_projects') || '[]') as string[];
+        const filtered = [path, ...stored.filter((p) => p !== path)].slice(0, 8);
+        localStorage.setItem('nani_recent_projects', JSON.stringify(filtered));
+      } catch {
+        // ignore storage errors
+      }
+    }
     set({ projectPath: path, projectValidation: null });
   },
 
   async pickProject() {
     const { bridge } = get();
-    if (!bridge) return;
-    const path = await bridge.pickProjectDirectory();
-    if (path === null) return;
-    get().setProjectPath(path);
-    await get().validateProject(path);
+    if (!bridge) {
+      set({ folderModalOpen: true });
+      return;
+    }
+    try {
+      const path = await bridge.pickProjectDirectory();
+      if (path) {
+        get().setProjectPath(path);
+        await get().validateProject(path);
+        return;
+      }
+    } catch (err) {
+      console.warn('Native folder pick failed, opening modal:', err);
+    }
+    // If native picker didn't return a path or was cancelled/unavailable, open modal
+    set({ folderModalOpen: true });
   },
 
   async validateProject(path) {

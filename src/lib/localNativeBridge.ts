@@ -38,9 +38,22 @@ export class LocalNativeBridge implements NaniBridge {
   }
 
   async pickProjectDirectory(): Promise<string | null> {
-    // In browser/app window, prompt user for folder or use HTML folder input
-    const path = window.prompt('Enter or paste the absolute path to your project folder:');
-    return path ? path.trim() : null;
+    try {
+      const res = await fetch('/api/nani/pick-folder');
+      if (res.ok) {
+        const data = (await res.json()) as { path?: string | null };
+        if (data?.path && typeof data.path === 'string' && data.path.trim()) {
+          return data.path.trim();
+        }
+        if (data?.path === null) {
+          // User clicked cancel in native dialog
+          return null;
+        }
+      }
+    } catch {
+      // Backend not responding or desktop error
+    }
+    return null;
   }
 
   async validateProject(path: string): Promise<ProjectValidation> {

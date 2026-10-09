@@ -5,6 +5,8 @@ import { RouteContext, type AppRoute, StatusDot, cx } from './ui/primitives';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 
+import { FolderPickerModal } from '../features/workspace/FolderPickerModal';
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [route, setRoute] = useState<AppRoute>('workspace');
   const routeValue = useMemo(() => ({ route, navigate: setRoute }), [route]);
@@ -19,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <StatusStrip />
         </div>
       </div>
+      <FolderPickerModal />
     </RouteContext.Provider>
   );
 }

@@ -14,6 +14,7 @@ export function ProjectPicker() {
   const validation   = useAppStore((s) => s.projectValidation);
   const validating   = useAppStore((s) => s.validating);
   const pickProject  = useAppStore((s) => s.pickProject);
+  const openFolderModal = useAppStore((s) => s.openFolderModal);
   const validateProject = useAppStore((s) => s.validateProject);
 
   const copyPath = () => {
@@ -32,10 +33,15 @@ export function ProjectPicker() {
             Choose a folder to give Claude Code a working directory.
           </p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => void pickProject()}>
-          <FolderIcon className="h-3.5 w-3.5" />
-          Choose folder
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="primary" size="sm" onClick={() => void pickProject()}>
+            <FolderIcon className="h-3.5 w-3.5" />
+            Choose folder
+          </Button>
+          <Button variant="secondary" size="sm" onClick={openFolderModal} title="Open folder selector dialog">
+            Browse...
+          </Button>
+        </div>
       </div>
     );
   }

@@ -246,4 +246,19 @@ describe('misc', () => {
     await useAppStore.getState().runAuthCheck();
     expect(useAppStore.getState().auth?.state).toBe('unknown');
   });
+
+  it('manages folderModalOpen state and opens modal when pickProject yields no path', async () => {
+    const emptyBridge: ManualBridge = new ManualBridge();
+    emptyBridge.pickProjectDirectory = vi.fn().mockResolvedValue(null);
+    useAppStore.setState({ bridge: emptyBridge, folderModalOpen: false });
+
+    useAppStore.getState().openFolderModal();
+    expect(useAppStore.getState().folderModalOpen).toBe(true);
+
+    useAppStore.getState().closeFolderModal();
+    expect(useAppStore.getState().folderModalOpen).toBe(false);
+
+    await useAppStore.getState().pickProject();
+    expect(useAppStore.getState().folderModalOpen).toBe(true);
+  });
 });

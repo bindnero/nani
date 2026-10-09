@@ -209,6 +209,67 @@ function sendJson(res: ServerResponse, data: unknown, status = 200) {
   res.end(JSON.stringify(data));
 }
 
+function pickFolderNative(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const isWin = process.platform === 'win32';
+    const isMac = process.platform === 'darwin';
+
+    if (isWin) {
+      const psScript =
+        'Add-Type -AssemblyName System.Windows.Forms; ' +
+        '$d = New-Object System.Windows.Forms.FolderBrowserDialog; ' +
+        '$d.Description = "Select project folder for Claude Code"; ' +
+        '$d.ShowNewFolderButton = $true; ' +
+        '$f = New-Object System.Windows.Forms.Form; ' +
+        '$f.TopMost = $true; ' +
+        '$f.StartPosition = "CenterScreen"; ' +
+        'if ($d.ShowDialog($f) -eq [System.Windows.Forms.DialogResult]::OK) { ' +
+        '[Console]::Out.Write($d.SelectedPath) }';
+
+      const child = spawn(
+        'powershell.exe',
+        ['-NoProfile', '-NonInteractive', '-STA', '-Command', psScript],
+        { windowsHide: false },
+      );
+
+      let stdout = '';
+      child.stdout?.on('data', (d) => {
+        stdout += d.toString();
+      });
+      child.on('close', () => {
+        const trimmed = stdout.trim();
+        resolve(trimmed || null);
+      });
+      child.on('error', () => resolve(null));
+    } else if (isMac) {
+      const child = spawn('osascript', [
+        '-e',
+        'POSIX path of (choose folder with prompt "Select project folder for Claude Code")',
+      ]);
+      let stdout = '';
+      child.stdout?.on('data', (d) => {
+        stdout += d.toString();
+      });
+      child.on('close', () => resolve(stdout.trim() || null));
+      child.on('error', () => resolve(null));
+    } else {
+      const child = spawn('zenity', [
+        '--file-selection',
+        '--directory',
+        '--title=Select project folder for Claude Code',
+      ]);
+      let stdout = '';
+      child.stdout?.on('data', (d) => {
+        stdout += d.toString();
+      });
+      child.on('close', (code) => {
+        resolve(code === 0 && stdout.trim() ? stdout.trim() : null);
+      });
+      child.on('error', () => resolve(null));
+    }
+  });
+}
+
 export function naniNativeServicePlugin(): Plugin {
   return {
     name: 'nani-native-service',
@@ -304,6 +365,40 @@ export function naniNativeServicePlugin(): Plugin {
                 isDirectory: false,
                 readable: false,
               });
+            }
+          }
+
+          if (pathname === '/api/nani/pick-folder') {
+            const folder = await pickFolderNative();
+            return sendJson(res, { path: folder });
+          }
+
+          if (pathname === '/api/nani/common-paths') {
+            const home = os.homedir();
+            return sendJson(res, {
+              home,
+              desktop: path.join(home, 'Desktop'),
+              downloads: path.join(home, 'Downloads'),
+              documents: path.join(home, 'Documents'),
+              current: process.cwd(),
+            });
+          }
+
+          if (pathname === '/api/nani/list-dir') {
+            const dir = urlObj.searchParams.get('path') || process.cwd();
+            try {
+              const entries = fs.readdirSync(dir, { withFileTypes: true });
+              const subdirs = entries
+                .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+                .map((e) => ({
+                  name: e.name,
+                  path: path.join(dir, e.name),
+                }))
+                .slice(0, 50);
+              return sendJson(res, { path: dir, subdirs });
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : String(err);
+              return sendJson(res, { path: dir, error: msg, subdirs: [] }, 400);
             }
           }
 
