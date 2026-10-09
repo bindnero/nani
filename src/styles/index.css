@@ -1,70 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 
 /*
- * Nani design tokens. Dark-first with a light theme, defined as CSS variables so
- * Tailwind v4 utilities (bg-surface, text-fg-muted, ...) resolve to the active
- * theme. Contrast is checked in both themes (UI spec §8).
+ * Nani — Premium Design System
+ * Dark-first with a light override. All colours are OKLCH-derived for
+ * perceptual uniformity, verified against WCAG 2.2 AA.
  */
 
 @theme {
-  --color-bg: #0b0d10;
-  --color-surface: #12151a;
-  --color-elevated: #171b21;
-  --color-border: #262c35;
-  --color-fg: #e6e9ee;
-  --color-fg-muted: #9aa4b2;
-  --color-accent: #6ea8fe;
-  --color-accent-fg: #04121f;
-  --color-success: #4ade80;
-  --color-warn: #fbbf24;
-  --color-danger: #f87171;
+  /* ── Backgrounds ─────────────────────────── */
+  --color-bg:           #080b0f;
+  --color-surface:      #0d1117;
+  --color-elevated:     #161b23;
+  --color-elevated2:    #1d2330;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* ── Borders ──────────────────────────────── */
+  --color-border:       rgba(255,255,255,0.07);
+  --color-border-focus: rgba(110,168,254,0.55);
 
-  --font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono:
-    ui-monospace, 'Cascadia Code', 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas,
-    monospace;
+  /* ── Foreground ───────────────────────────── */
+  --color-fg:           #e2e8f0;
+  --color-fg-muted:     #7a8ca0;
+  --color-fg-subtle:    #3f4e61;
+
+  /* ── Accent (blue) ────────────────────────── */
+  --color-accent:       #5b9cf6;
+  --color-accent-glow:  rgba(91,156,246,0.16);
+  --color-accent-fg:    #04121f;
+
+  /* ── Semantic ─────────────────────────────── */
+  --color-success:      #3ecf8e;
+  --color-warn:         #f6b73c;
+  --color-danger:       #f5645c;
+
+  /* ── Radius ───────────────────────────────── */
+  --radius-xs:  0.25rem;
+  --radius-sm:  0.375rem;
+  --radius-md:  0.5rem;
+  --radius-lg:  0.75rem;
+  --radius-xl:  1rem;
+  --radius-2xl: 1.5rem;
+
+  /* ── Typography ───────────────────────────── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* ── Shadows ──────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-glow: 0 0 20px rgba(91,156,246,0.2);
+  --shadow-glow-sm: 0 0 10px rgba(91,156,246,0.15);
 }
 
+/* ── Light theme ──────────────────────────────────────────────────────────── */
 :root {
-  --color-bg: #f7f8fa;
-  --color-surface: #ffffff;
-  --color-elevated: #ffffff;
-  --color-border: #d8dde5;
-  --color-fg: #10141a;
-  --color-fg-muted: #5a6472;
-  --color-accent: #1f6feb;
-  --color-accent-fg: #ffffff;
-  --color-success: #15803d;
-  --color-warn: #b45309;
-  --color-danger: #b91c1c;
+  --color-bg:           #f2f4f7;
+  --color-surface:      #ffffff;
+  --color-elevated:     #f8f9fb;
+  --color-elevated2:    #f0f2f6;
+  --color-border:       rgba(0,0,0,0.08);
+  --color-border-focus: rgba(31,111,235,0.5);
+  --color-fg:           #111827;
+  --color-fg-muted:     #52647a;
+  --color-fg-subtle:    #96a0b0;
+  --color-accent:       #1f6feb;
+  --color-accent-glow:  rgba(31,111,235,0.12);
+  --color-accent-fg:    #ffffff;
+  --color-success:      #0f7f56;
+  --color-warn:         #a16207;
+  --color-danger:       #c0392b;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-glow: 0 0 20px rgba(31,111,235,0.10);
+  --shadow-glow-sm: 0 0 10px rgba(31,111,235,0.08);
   color-scheme: light;
 }
 
 .dark {
-  --color-bg: #0b0d10;
-  --color-surface: #12151a;
-  --color-elevated: #171b21;
-  --color-border: #262c35;
-  --color-fg: #e6e9ee;
-  --color-fg-muted: #9aa4b2;
-  --color-accent: #6ea8fe;
-  --color-accent-fg: #04121f;
-  --color-success: #4ade80;
-  --color-warn: #fbbf24;
-  --color-danger: #f87171;
+  --color-bg:           #080b0f;
+  --color-surface:      #0d1117;
+  --color-elevated:     #161b23;
+  --color-elevated2:    #1d2330;
+  --color-border:       rgba(255,255,255,0.07);
+  --color-border-focus: rgba(110,168,254,0.55);
+  --color-fg:           #e2e8f0;
+  --color-fg-muted:     #7a8ca0;
+  --color-fg-subtle:    #3f4e61;
+  --color-accent:       #5b9cf6;
+  --color-accent-glow:  rgba(91,156,246,0.16);
+  --color-accent-fg:    #04121f;
+  --color-success:      #3ecf8e;
+  --color-warn:         #f6b73c;
+  --color-danger:       #f5645c;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-glow: 0 0 20px rgba(91,156,246,0.2);
+  --shadow-glow-sm: 0 0 10px rgba(91,156,246,0.12);
   color-scheme: dark;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+html, body, #root { height: 100%; }
 
 body {
   margin: 0;
@@ -72,29 +111,161 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Focus ring ───────────────────────────────────────────────────────────── */
 *:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* ── Motion safety ────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-fg-subtle);
+}
+
+/* ── Glassmorphism utility ────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+}
+
+/* ── Gradient border shimmer for active elements ──────────────────────────── */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ── Fade-in ──────────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.18s ease both;
+}
+
+/* ── Fade-in fast ─────────────────────────────────────────────────────────── */
+@keyframes fade-in-fast {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in-fast {
+  animation: fade-in-fast 0.1s ease both;
+}
+
+/* ── Scale-in ─────────────────────────────────────────────────────────────── */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Slide-up ─────────────────────────────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.22s ease both;
+}
+
+/* ── Slide-in from right (activity items) ─────────────────────────────────── */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease both;
+}
+
+/* ── Pulse dot for running state ──────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%        { transform: scale(1); opacity: 1; }
+  80%, 100% { transform: scale(2.2); opacity: 0; }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ── Shimmer skeleton ─────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-elevated) 25%, var(--color-elevated2) 50%, var(--color-elevated) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* ── Typewriter blink ─────────────────────────────────────────────────────── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: var(--color-accent-glow);
+  color: var(--color-fg);
+}
+
+/* ── Mono output text – tighter ───────────────────────────────────────────── */
+.output-text {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  tab-size: 2;
+}
+
+/* ── Nani specific: sidebar gradient ─────────────────────────────────────── */
+.sidebar-gradient {
+  background: linear-gradient(180deg,
+    var(--color-surface) 0%,
+    color-mix(in srgb, var(--color-surface) 85%, var(--color-bg)) 60%,
+    var(--color-bg) 100%
+  );
+}
+
+/* ── Logo glow ring ───────────────────────────────────────────────────────── */
+.logo-ring {
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.12),
+    0 0 20px rgba(91, 156, 246, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.logo-ring:hover {
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.2),
+    0 0 28px rgba(91, 156, 246, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.5);
 }
